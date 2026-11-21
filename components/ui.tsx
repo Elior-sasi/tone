@@ -34,25 +34,25 @@ export function Button({ variant = "glass", size = "md", full, className = "", c
 
 export function TopBar({ onBack, onSettings, title = true, backLabel = "חזרה" }: { onBack?: () => void; onSettings?: () => void; title?: boolean; backLabel?: string }) {
   return (
-    <header className="safe-top sticky top-0 z-30 px-3">
-      <div className="flex items-center justify-between h-12 gap-2">
-        <div className="w-[5.5rem] flex justify-start">
+    <header className="safe-top sticky top-0 z-30 px-3 bg-bg/85 backdrop-blur-xl">
+      <div className="flex items-center justify-between min-h-[48px] gap-2">
+        <div className="flex-1 min-w-0 flex justify-start">
           {onBack && (
-            <button type="button" onClick={onBack} aria-label={backLabel} className="pressable flex items-center gap-0.5 min-h-11 min-w-11 px-2 -ms-1 rounded-xl text-sky-ink font-semibold">
+            <button type="button" onClick={onBack} aria-label={backLabel} className="pressable flex items-center gap-0.5 min-h-11 min-w-11 px-2 -ms-1 rounded-xl text-sky-ink font-semibold whitespace-nowrap">
               <IconBack size={22} />
               <span>{backLabel}</span>
             </button>
           )}
         </div>
         {title && (
-          <div className="flex items-center gap-2 font-bold text-[1.05rem]" aria-hidden="true">
+          <div className="flex-none flex items-center gap-2 font-bold text-[min(1.05rem,20px)] whitespace-nowrap" aria-hidden="true">
             <BrandMark size={24} />
             <span>צור-tone</span>
           </div>
         )}
-        <div className="w-[5.5rem] flex justify-end">
+        <div className="flex-1 min-w-0 flex justify-end">
           {onSettings && (
-            <button type="button" onClick={onSettings} aria-label="הגדרות" className="pressable grid place-items-center min-h-11 min-w-11 rounded-full glass text-ink">
+            <button type="button" onClick={onSettings} aria-label="הגדרות" className="pressable grid place-items-center h-[44px] w-[44px] rounded-full glass text-ink">
               <IconGear size={21} />
             </button>
           )}

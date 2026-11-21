@@ -58,12 +58,12 @@ function MiniPlayer({ url, name, duration }: { url: string; name: string; durati
   return (
     <div className="flex items-center gap-3 rounded-[1.25rem] bg-surface-2 border border-hairline p-2.5">
       <audio ref={ref} src={url} preload="metadata" />
-      <button type="button" onClick={toggle} aria-label={playing ? `השהה את ${name}` : `נגן את ${name}`} className="pressable grid place-items-center h-12 w-12 flex-none rounded-full bg-ink text-bg">
+      <button type="button" onClick={toggle} aria-label={playing ? `השהה את ${name}` : `נגן את ${name}`} className="pressable grid place-items-center h-[48px] w-[48px] flex-none rounded-full bg-ink text-bg">
         {playing ? <IconPause size={20} /> : <IconPlay size={20} className="translate-x-[1px]" />}
       </button>
       <div className="flex-1 min-w-0" dir="ltr">
         <div className="h-1.5 rounded-full bg-track overflow-hidden"><div className="h-full bg-orange rounded-full" style={{ width: `${pct}%` }} /></div>
-        <div className="flex justify-between mt-1 text-[0.75rem] text-ink-3 tabular"><span>{fmtTime(t)}</span><span>{fmtTime(d)}</span></div>
+        <div className="flex flex-wrap justify-between gap-x-3 mt-1 text-[0.75rem] text-ink-3 tabular"><span>{fmtTime(t)}</span><span>{fmtTime(d)}</span></div>
       </div>
     </div>
   );
@@ -166,15 +166,15 @@ export default function Success({ result, isIPhone, onBack, onNew, onSettings, o
         )}
 
         {/* Secondary actions - quiet */}
-        <div className="grid grid-cols-2 gap-2 mt-6">
+        <div className="flex flex-wrap gap-2 mt-6">
           {isIPhone ? (
-            <Button variant="glass" onClick={save}>
+            <Button variant="glass" className="flex-[1_0_auto]" onClick={save}>
               {saved ? <IconCheck size={18} /> : <IconDownload size={18} />} {saved ? "נשמר" : "שמור לקבצים"}
             </Button>
           ) : canShare ? (
-            <Button variant="glass" onClick={share}><IconShare size={18} /> שתף</Button>
+            <Button variant="glass" className="flex-[1_0_auto]" onClick={share}><IconShare size={18} /> שתף</Button>
           ) : null}
-          <Button variant="glass" onClick={onNew} className={!isIPhone && !canShare ? "col-span-2" : ""}>
+          <Button variant="glass" onClick={onNew} className="flex-[1_0_auto]">
             <IconPlus size={18} /> צלצול חדש
           </Button>
         </div>

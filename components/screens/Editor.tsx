@@ -143,7 +143,7 @@ export default function Editor(p: Props) {
     <div className="min-h-[100dvh] flex flex-col">
       <TopBar onBack={p.onBack} onSettings={p.onSettings} />
 
-      <div className="flex-1 w-full max-w-[40rem] mx-auto px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+      <div className="flex-1 w-full max-w-[40rem] mx-auto px-4 pb-6">
         {/* Player - tap to play / pause */}
         <div className="relative rounded-[1.6rem] overflow-hidden shadow-lift bg-black">
           <Mediatag
@@ -167,7 +167,7 @@ export default function Editor(p: Props) {
             className="absolute inset-0 grid place-items-center"
           >
             {!freePlaying && (
-              <span className="grid place-items-center h-16 w-16 rounded-full bg-black/45 text-white backdrop-blur-md" aria-hidden="true">
+              <span className="grid place-items-center h-[64px] w-[64px] rounded-full bg-black/45 text-white backdrop-blur-md" aria-hidden="true">
                 <IconPlay size={28} className="translate-x-[2px]" />
               </span>
             )}
@@ -195,9 +195,9 @@ export default function Editor(p: Props) {
 
         {/* Selection */}
         <section aria-labelledby="sel-title" className="mt-5">
-          <div className="flex items-baseline justify-between gap-2 mb-2.5 px-1">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-2.5 px-1">
             <h2 id="sel-title" className="text-[1.1rem] font-bold">גרור לבחירת הקטע</h2>
-            <div className="text-[1rem] font-bold tabular" aria-live="polite">
+            <div className="text-[1rem] font-bold tabular whitespace-nowrap" aria-live="polite">
               <span className="ltr">{fmtSeconds(len)}</span> שנ׳
               {len >= MAX_CLIP - 0.05 && <span className="sr-only"> - המקסימום לצלצול</span>}
             </div>
@@ -224,13 +224,13 @@ export default function Editor(p: Props) {
             onClick={() => setFine((f) => !f)}
             aria-expanded={fine}
             aria-controls="fine-panel"
-            className="pressable mt-2 w-full flex items-center justify-between min-h-12 px-4 rounded-[1.1rem] glass font-semibold"
+            className="pressable mt-2 w-full flex items-center justify-between gap-3 min-h-12 px-4 py-2 rounded-[1.1rem] glass font-semibold text-start"
           >
-            <span className="flex items-center gap-2">
-              כוונון מדויק
-              <span className="text-ink-3 font-medium tabular ltr text-[0.9rem]">{fmtTime(start)} - {fmtTime(end)}</span>
+            <span className="flex flex-wrap items-center gap-x-2 min-w-0">
+              <span className="whitespace-nowrap">כוונון מדויק</span>
+              <span className="text-ink-3 font-medium tabular ltr text-[0.9rem] whitespace-nowrap">{fmtTime(start)} - {fmtTime(end)}</span>
             </span>
-            <IconChevronDown size={20} className={`transition-transform ${fine ? "rotate-180" : ""}`} />
+            <IconChevronDown size={20} className={`flex-none transition-transform ${fine ? "rotate-180" : ""}`} />
           </button>
 
           {fine && (
@@ -239,18 +239,16 @@ export default function Editor(p: Props) {
                 { label: "התחלה", v: start, nudgeFn: nudgeStart, here: startHere },
                 { label: "סיום", v: end, nudgeFn: nudgeEnd, here: endHere },
               ] as const).map((row) => (
-                <div key={row.label} className="flex items-center gap-1.5">
-                  <div className="flex-1 min-w-0 ps-2">
-                    <div className="text-[0.82rem] font-semibold text-ink-2">{row.label}</div>
-                    <div className="font-bold tabular ltr text-start">{fmtTime(row.v)}</div>
+                <div key={row.label} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 p-1">
+                  <div className="flex-[1_0_auto] flex items-baseline gap-2 ps-1">
+                    <span className="text-[0.85rem] font-semibold text-ink-2">{row.label}</span>
+                    <span className="font-bold tabular ltr whitespace-nowrap">{fmtTime(row.v)}</span>
                   </div>
-                  <div className="flex gap-1.5" dir="ltr">
-                    <Button size="sm" variant="glass" className="tabular" onClick={() => row.nudgeFn(-0.1)} aria-label={`${row.label}: 0.1 שנייה אחורה`}>−0.1</Button>
-                    <Button size="sm" variant="glass" className="tabular" onClick={() => row.nudgeFn(0.1)} aria-label={`${row.label}: 0.1 שנייה קדימה`}>+0.1</Button>
+                  <div className="flex-[1_1_12rem] min-w-0 flex gap-1.5" dir="ltr">
+                    <Button size="sm" variant="glass" className="flex-1 min-w-0 !px-1 tabular whitespace-nowrap" onClick={() => row.nudgeFn(-0.1)} aria-label={`${row.label}: 0.1 שנייה אחורה`}>−0.1</Button>
+                    <Button size="sm" variant="glass" className="flex-1 min-w-0 !px-1 tabular whitespace-nowrap" onClick={() => row.nudgeFn(0.1)} aria-label={`${row.label}: 0.1 שנייה קדימה`}>+0.1</Button>
+                    <Button size="sm" variant="ghost" className="flex-1 min-w-0 !px-1 text-sky-ink whitespace-nowrap" onClick={row.here} aria-label={`קבע ${row.label} במיקום הנגן`}>כאן</Button>
                   </div>
-                  <Button size="sm" variant="ghost" className="text-sky-ink" onClick={row.here} aria-label={`קבע ${row.label} במיקום הנגן`}>
-                    לפי הנגן
-                  </Button>
                 </div>
               ))}
               <div className="border-t border-hairline mt-1 px-2">
@@ -262,12 +260,12 @@ export default function Editor(p: Props) {
       </div>
 
       {/* Bottom action bar: listen + create */}
-      <div className="fixed inset-x-0 bottom-0 z-30 px-3 pt-3 safe-bottom glass !border-x-0 !border-b-0 rounded-t-[1.75rem]">
-        <div className="max-w-[40rem] mx-auto flex items-center gap-2.5">
+      <div className="sticky bottom-0 z-30 px-3 pt-3 safe-bottom glass !border-x-0 !border-b-0 rounded-t-[1.75rem]">
+        <div className="max-w-[40rem] mx-auto flex flex-wrap-reverse items-center gap-2.5">
           <Button
             variant="sky"
             size="lg"
-            className="flex-none !px-4"
+            className="flex-[1_0_auto] !px-4 whitespace-nowrap"
             onClick={preview}
             aria-pressed={previewing}
             aria-label={previewing ? "עצור השמעה" : "השמע את הקטע שנבחר"}
@@ -275,7 +273,7 @@ export default function Editor(p: Props) {
             {previewing ? <IconPause size={22} /> : <IconPlay size={22} />}
             <span>{previewing ? "עצור" : "השמע"}</span>
           </Button>
-          <Button variant="accent" size="lg" className="flex-1" onClick={() => { media.current?.pause(); p.onCreate(); }} aria-label={`צור צלצול באורך ${fmtSeconds(len)} שניות`}>
+          <Button variant="accent" size="lg" className="flex-[3_0_auto] whitespace-nowrap" onClick={() => { media.current?.pause(); p.onCreate(); }} aria-label={`צור צלצול באורך ${fmtSeconds(len)} שניות`}>
             צור צלצול
           </Button>
         </div>

@@ -40,11 +40,11 @@ export default function Home({ onFile, onUrl, onSettings, showInstall, onInstall
 
       <div className="flex-1 flex flex-col w-full max-w-[34rem] mx-auto px-4">
         {/* Hero */}
-        <section className="flex-1 flex flex-col items-center justify-center text-center pt-4 pb-8 min-h-[13rem]">
+        <section className="flex-1 flex flex-col items-center justify-center text-center pt-[12px] pb-[24px] min-h-[180px]">
           <div className="pop">
             <BrandMark size={84} className="drop-shadow-[0_18px_30px_rgba(30,120,190,0.35)] rounded-[1.4rem]" />
           </div>
-          <h1 className="mt-5 text-[2.35rem] leading-none font-extrabold tracking-tight">
+          <h1 className="mt-[16px] text-[min(2.35rem,44px)] leading-none font-extrabold tracking-tight">
             צור-tone
           </h1>
           <p className="mt-2.5 text-[1.15rem] text-ink-2 font-medium">הופכים רגע לצלצול.</p>
@@ -69,13 +69,10 @@ export default function Home({ onFile, onUrl, onSettings, showInstall, onInstall
             type="button"
             onClick={() => videoInputRef.current?.click()}
             aria-label="בחר וידאו או קובץ אודיו מהמכשיר"
-            className="pressable flex items-center gap-4 rounded-[1.75rem] bg-sky text-on-accent min-h-[6.5rem] px-5 shadow-lift text-start"
+            className="pressable flex flex-col items-center justify-center gap-[10px] rounded-[28px] bg-sky text-on-accent py-[20px] px-[16px] shadow-lift text-center"
           >
-            <span className="grid place-items-center h-14 w-14 flex-none rounded-2xl bg-white/45"><IconVideo size={30} /></span>
-            <span className="flex flex-col">
-              <span className="text-[1.3rem] font-extrabold">בחר וידאו או שיר</span>
-              <span className="text-[0.9rem] font-semibold opacity-80">מהגלריה או מהקבצים</span>
-            </span>
+            <span className="grid place-items-center h-[52px] w-[52px] rounded-[16px] bg-white/45" aria-hidden="true"><IconVideo size={28} /></span>
+            <span className="text-[1.3rem] leading-tight font-extrabold">בחר וידאו או שיר</span>
           </button>
           <input ref={videoInputRef} type="file" accept={VIDEO_ACCEPT + "," + AUDIO_ACCEPT} className="sr-only" tabIndex={-1} aria-hidden="true" onChange={pick} />
 
