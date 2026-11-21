@@ -3,3 +3,4 @@ node_modules
 public/ffmpeg
 *.tsbuildinfo
 next-env.d.ts
+bin/

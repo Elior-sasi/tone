@@ -16,15 +16,15 @@ export class GuardError extends Error {
   }
 }
 
-/** Services whose media can't be fetched through a permitted, public download path. */
-const PROVIDERS: { re: RegExp; name: string; tip?: string }[] = [
-  { re: /(^|\.)tiktok\.com$|(^|\.)tiktokv\.com$/, name: "TikTok", tip: "בטיקטוק: לחץ ״שתף״ ואז ״שמור סרטון״ (כשהיוצר מאפשר זאת), ואז בחר את הסרטון מכאן." },
+/** Known services. Most go through yt-dlp; `drm` ones can't be downloaded at all. */
+const PROVIDERS: { re: RegExp; name: string; tip?: string; drm?: boolean }[] = [
+  { re: /(^|\.)tiktok\.com$|(^|\.)tiktokv\.com$/, name: "TikTok" },
   { re: /(^|\.)youtube\.com$|(^|\.)youtu\.be$|(^|\.)youtube-nocookie\.com$/, name: "YouTube" },
   { re: /(^|\.)instagram\.com$/, name: "Instagram" },
   { re: /(^|\.)facebook\.com$|(^|\.)fb\.watch$/, name: "Facebook" },
   { re: /(^|\.)x\.com$|(^|\.)twitter\.com$/, name: "X" },
   { re: /(^|\.)vimeo\.com$/, name: "Vimeo" },
-  { re: /(^|\.)netflix\.com$|(^|\.)disneyplus\.com$|(^|\.)spotify\.com$|(^|\.)music\.apple\.com$|(^|\.)tv\.apple\.com$/, name: "שירות מוגן" },
+  { re: /(^|\.)netflix\.com$|(^|\.)disneyplus\.com$|(^|\.)spotify\.com$|(^|\.)music\.apple\.com$|(^|\.)tv\.apple\.com$/, name: "שירות מוגן", drm: true },
 ];
 
 export function detectProvider(u: URL) {
@@ -45,7 +45,7 @@ export function parseUserUrl(raw: string): URL {
   return u;
 }
 
-function isPublicIp(ip: string): boolean {
+export function isPublicIp(ip: string): boolean {
   if (net.isIPv4(ip)) {
     const [a, b] = ip.split(".").map(Number);
     if (a === 0 || a === 10 || a === 127) return false;

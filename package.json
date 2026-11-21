@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/copy-ffmpeg.mjs && next build",
+    "build": "node scripts/copy-ffmpeg.mjs && node scripts/get-ytdlp.mjs && next build",
     "start": "next start",
     "icons": "node scripts/make-icons.mjs",
     "postinstall": "node scripts/copy-ffmpeg.mjs",

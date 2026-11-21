@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["ffmpeg-static"],
+  outputFileTracingIncludes: { "/api/import": ["./bin/yt-dlp"] },
   async headers() {
     return [
       {
