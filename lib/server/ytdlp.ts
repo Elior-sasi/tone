@@ -1,7 +1,7 @@
 import "server-only";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { chmod, copyFile, mkdir, rename } from "node:fs/promises";
+import { chmod, copyFile, mkdir, rename, writeFile } from "node:fs/promises";
 import { lookup } from "node:dns/promises";
 import net from "node:net";
 import { tmpdir } from "node:os";
@@ -37,6 +37,18 @@ export async function assertPublicHost(u: URL) {
   if (!ips.length || ips.some((ip) => !isPublicIp(ip))) throw new Error("blocked_address");
 }
 
+/** Optional cookies (Netscape cookies.txt, plain or base64) from the YTDLP_COOKIES env var - helps with YouTube's bot check. */
+async function cookiesFile(): Promise<string | null> {
+  let raw = (process.env.YTDLP_COOKIES || "").trim();
+  if (!raw) return null;
+  if (!raw.includes("\t")) { try { raw = Buffer.from(raw, "base64").toString("utf8"); } catch {} }
+  if (!raw.startsWith("#")) raw = "# Netscape HTTP Cookie File\n" + raw;
+  const path = join(tmpdir(), "tzur-bin", "cookies.txt");
+  await mkdir(join(tmpdir(), "tzur-bin"), { recursive: true });
+  await writeFile(path, raw.endsWith("\n") ? raw : raw + "\n", { mode: 0o600 });
+  return path;
+}
+
 export type YtdlpResult = { path: string; title?: string; size: number };
 export class YtdlpError extends Error {
   constructor(public kind: "unavailable" | "blocked" | "too_large" | "failed", public detail = "") { super(kind); }
@@ -52,8 +64,10 @@ export async function ytdlpDownload(
   const bin = await ytdlpBinary();
   if (!bin) throw new YtdlpError("unavailable");
   await assertPublicHost(url);
+  const cookies = await cookiesFile();
 
   const args = [
+    ...(cookies ? ["--cookies", cookies] : []),
     "--no-playlist", "--no-warnings", "--no-part", "--no-mtime", "--newline", "--progress",
     "--no-simulate", "--restrict-filenames",
     "--max-filesize", String(maxBytes),
