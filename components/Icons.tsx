@@ -86,3 +86,9 @@ export const BrandMark = ({ size = 40, ...p }: P) => (
     </g>
   </svg>
 );
+export const IconPencil = ({ size, ...p }: P) => (
+  <svg {...base(size)} {...p}><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></svg>
+);
+export const IconChevronDown = ({ size, ...p }: P) => (
+  <svg {...base(size)} {...p} strokeWidth={2.5}><path d="m6 9 6 6 6-6" /></svg>
+);

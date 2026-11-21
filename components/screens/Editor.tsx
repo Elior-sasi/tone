@@ -1,8 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Timeline, { moveEnd, moveStart, type Handle } from "../Timeline";
-import { IconLoop, IconMusic, IconPause, IconPlay, IconStepBack, IconStepFwd } from "../Icons";
-import { Button, TopBar } from "../ui";
+import { IconChevronDown, IconMusic, IconPause, IconPlay, IconPencil } from "../Icons";
+import { Button, Switch, TopBar } from "../ui";
 import { MAX_CLIP, MIN_CLIP, clamp, fmtSeconds, fmtTime } from "@/lib/format";
 import type { Envelope } from "@/lib/waveform";
 
@@ -33,6 +33,7 @@ export default function Editor(p: Props) {
   const [playing, setPlaying] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [loop, setLoop] = useState(false);
+  const [fine, setFine] = useState(false);
   const [hasPicture, setHasPicture] = useState(source.isVideo);
   const raf = useRef(0);
   const seekState = useRef<{ busy: boolean; next: number | null }>({ busy: false, next: null });
@@ -130,24 +131,20 @@ export default function Editor(p: Props) {
     void m.play().catch(() => setPreviewing(false));
   };
 
-  const nudge = (d: number) => {
-    media.current?.pause();
-    seekTo(current + d);
-  };
-
   const nudgeStart = (d: number) => { const r = moveStart(start + d, start, end, dur, MAX_CLIP, MIN_CLIP); stopPreview(); onSel(r[0], r[1]); seekTo(r[0]); };
   const nudgeEnd = (d: number) => { const r = moveEnd(end + d, start, end, dur, MAX_CLIP, MIN_CLIP); stopPreview(); onSel(r[0], r[1]); seekTo(r[1]); };
   const startHere = () => { const r = moveStart(current, start, end, dur, MAX_CLIP, MIN_CLIP); onSel(r[0], r[1]); };
   const endHere = () => { const r = moveEnd(current, start, end, dur, MAX_CLIP, MIN_CLIP); onSel(r[0], r[1]); };
 
   const Mediatag = source.isVideo ? "video" : "audio";
+  const freePlaying = playing && !previewing;
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
       <TopBar onBack={p.onBack} onSettings={p.onSettings} />
 
-      <div className="flex-1 w-full max-w-[40rem] mx-auto px-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
-        {/* Player */}
+      <div className="flex-1 w-full max-w-[40rem] mx-auto px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+        {/* Player - tap to play / pause */}
         <div className="relative rounded-[1.6rem] overflow-hidden shadow-lift bg-black">
           <Mediatag
             ref={media as any}
@@ -155,40 +152,54 @@ export default function Editor(p: Props) {
             playsInline
             preload="metadata"
             onError={p.onMediaError}
-            onClick={togglePlay}
-            className={source.isVideo && hasPicture ? "block w-full max-h-[36dvh] min-h-[10rem] object-contain bg-black" : "hidden"}
-            aria-label="נגן"
+            className={source.isVideo && hasPicture ? "block w-full max-h-[34dvh] min-h-[9rem] object-contain bg-black" : "hidden"}
+            aria-hidden="true"
           />
           {(!source.isVideo || !hasPicture) && (
-            <div className="h-[10.5rem] flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-sky to-[#b9e4fb] text-on-accent" onClick={togglePlay}>
+            <div className="h-[9rem] grid place-items-center bg-gradient-to-br from-sky to-[#b9e4fb] text-on-accent">
               <div className={`grid place-items-center h-16 w-16 rounded-3xl bg-white/50 ${playing ? "pulse-soft" : ""}`}><IconMusic size={32} /></div>
-              <div className="font-bold px-6 text-center line-clamp-1">{p.name}</div>
             </div>
           )}
-          <div className="absolute bottom-2.5 start-2.5 rounded-full bg-black/55 text-white text-[0.78rem] font-semibold px-2.5 py-1 tabular ltr backdrop-blur-md" aria-hidden="true">
+          <button
+            type="button"
+            onClick={togglePlay}
+            aria-label={freePlaying ? "השהה" : "נגן מהמיקום הנוכחי"}
+            className="absolute inset-0 grid place-items-center"
+          >
+            {!freePlaying && (
+              <span className="grid place-items-center h-16 w-16 rounded-full bg-black/45 text-white backdrop-blur-md" aria-hidden="true">
+                <IconPlay size={28} className="translate-x-[2px]" />
+              </span>
+            )}
+          </button>
+          <div className="absolute bottom-2.5 start-2.5 rounded-full bg-black/55 text-white text-[0.85rem] font-semibold px-2.5 py-1 tabular ltr backdrop-blur-md pointer-events-none" aria-hidden="true">
             {fmtTime(current)}
           </div>
         </div>
 
-        {/* Transport - media controls are not mirrored */}
-        <div className="flex items-center justify-center gap-3 mt-4" dir="ltr">
-          <Button variant="glass" size="sm" onClick={() => nudge(-0.1)} aria-label="דלג 0.1 שנייה אחורה" className="!rounded-full !min-w-[3.25rem] !min-h-[3.25rem]">
-            <IconStepBack size={18} /><span className="text-[0.78rem] tabular">0.1</span>
-          </Button>
-          <Button variant="ink" onClick={togglePlay} aria-label={playing && !previewing ? "השהה" : "נגן"} className="!rounded-full !h-16 !w-16 !px-0">
-            {playing && !previewing ? <IconPause size={26} /> : <IconPlay size={26} className="translate-x-[1px]" />}
-          </Button>
-          <Button variant="glass" size="sm" onClick={() => nudge(0.1)} aria-label="דלג 0.1 שנייה קדימה" className="!rounded-full !min-w-[3.25rem] !min-h-[3.25rem]">
-            <span className="text-[0.78rem] tabular">0.1</span><IconStepFwd size={18} />
-          </Button>
-        </div>
+        {/* Name - inline, no extra card */}
+        <label className="mt-3 flex items-center gap-2 min-h-[3.2rem] rounded-[1.1rem] bg-surface-solid border border-hairline px-4 focus-within:ring-4 focus-within:ring-sky/60">
+          <span className="sr-only">שם הצלצול</span>
+          <IconPencil size={18} className="flex-none text-ink-3" />
+          <input
+            type="text"
+            value={p.name}
+            onChange={(e) => p.onName(e.target.value)}
+            placeholder="שם הצלצול"
+            maxLength={60}
+            dir="auto"
+            enterKeyHint="done"
+            className="flex-1 min-w-0 bg-transparent font-bold text-ink placeholder:text-ink-3 focus:outline-none"
+          />
+        </label>
 
         {/* Selection */}
-        <section aria-labelledby="sel-title" className="glass rounded-[1.75rem] p-4 mt-4">
-          <div className="flex items-baseline justify-between gap-2 mb-3 flex-wrap">
-            <h2 id="sel-title" className="text-[1.15rem] font-bold">בחר את הקטע שלך</h2>
-            <div className="text-[1.05rem] font-bold tabular ltr" aria-live="polite" aria-label={`מ־${fmtTime(start)} עד ${fmtTime(end)}`}>
-              {fmtTime(start)} - {fmtTime(end)}
+        <section aria-labelledby="sel-title" className="mt-5">
+          <div className="flex items-baseline justify-between gap-2 mb-2.5 px-1">
+            <h2 id="sel-title" className="text-[1.1rem] font-bold">גרור לבחירת הקטע</h2>
+            <div className="text-[1rem] font-bold tabular" aria-live="polite">
+              <span className="ltr">{fmtSeconds(len)}</span> שנ׳
+              {len >= MAX_CLIP - 0.05 && <span className="sr-only"> - המקסימום לצלצול</span>}
             </div>
           </div>
 
@@ -207,79 +218,65 @@ export default function Editor(p: Props) {
             onDragState={() => {}}
           />
 
-          <p className="text-center mt-1 text-[1rem] font-bold">
-            <span className="tabular">{fmtSeconds(len)}</span> שניות
-            {len >= MAX_CLIP - 0.05 && <span className="ms-2 text-[0.8rem] font-semibold text-ink-3">(המקסימום לצלצול)</span>}
-          </p>
-
-          {/* Precise start / end */}
-          <div className="grid grid-cols-2 gap-2.5 mt-4">
-            {([
-              { label: "התחלה", v: start, nudgeFn: nudgeStart, here: startHere, hereLabel: "קבע התחלה במיקום הנגן" },
-              { label: "סיום", v: end, nudgeFn: nudgeEnd, here: endHere, hereLabel: "קבע סיום במיקום הנגן" },
-            ] as const).map((row) => (
-              <div key={row.label} className="rounded-[1.25rem] bg-surface-2 border border-hairline p-2.5">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[0.85rem] font-semibold text-ink-2">{row.label}</span>
-                  <span className="font-bold tabular ltr">{fmtTime(row.v)}</span>
-                </div>
-                <div className="flex gap-1.5 mt-2" dir="ltr">
-                  <Button size="sm" variant="glass" className="flex-1 !px-1" onClick={() => row.nudgeFn(-0.1)} aria-label={`${row.label}: 0.1 שנייה אחורה`}>−0.1</Button>
-                  <Button size="sm" variant="glass" className="flex-1 !px-1" onClick={() => row.nudgeFn(0.1)} aria-label={`${row.label}: 0.1 שנייה קדימה`}>+0.1</Button>
-                </div>
-                <button type="button" onClick={row.here} aria-label={row.hereLabel} className="pressable w-full min-h-11 mt-1.5 rounded-[0.9rem] text-[0.85rem] font-semibold text-sky-ink">
-                  כאן לפי הנגן
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Preview */}
-        <section className="flex gap-2.5 mt-4" aria-label="השמעה">
-          <Button variant="sky" size="lg" className="flex-1" onClick={preview} aria-pressed={previewing}>
-            {previewing ? <IconPause size={22} /> : <IconPlay size={22} />}
-            {previewing ? "עצור" : "השמע את הצלצול"}
-          </Button>
+          {/* Fine tuning - hidden until needed */}
           <button
             type="button"
-            onClick={() => setLoop((l) => !l)}
-            aria-pressed={loop}
-            aria-label="השמע בלופ"
-            className={`pressable flex items-center gap-1.5 min-h-[3.6rem] px-4 rounded-[1.4rem] font-semibold border-2 ${loop ? "bg-orange-soft border-orange text-ink" : "glass border-transparent text-ink-2"}`}
+            onClick={() => setFine((f) => !f)}
+            aria-expanded={fine}
+            aria-controls="fine-panel"
+            className="pressable mt-2 w-full flex items-center justify-between min-h-12 px-4 rounded-[1.1rem] glass font-semibold"
           >
-            <IconLoop size={20} />
-            <span className="text-[0.9rem]">בלופ</span>
-            {loop && <span className="sr-only">פעיל</span>}
+            <span className="flex items-center gap-2">
+              כוונון מדויק
+              <span className="text-ink-3 font-medium tabular ltr text-[0.9rem]">{fmtTime(start)} - {fmtTime(end)}</span>
+            </span>
+            <IconChevronDown size={20} className={`transition-transform ${fine ? "rotate-180" : ""}`} />
           </button>
-        </section>
 
-        {/* Name */}
-        <section className="glass rounded-[1.75rem] p-4 mt-4">
-          <label htmlFor="ring-name" className="font-bold block mb-2">שם הצלצול</label>
-          <input
-            id="ring-name"
-            type="text"
-            value={p.name}
-            onChange={(e) => p.onName(e.target.value)}
-            placeholder="צלצול חדש"
-            maxLength={60}
-            dir="auto"
-            enterKeyHint="done"
-            className="w-full min-h-[3.2rem] rounded-[1.1rem] bg-surface-solid border border-hairline px-4 text-ink placeholder:text-ink-3 focus:outline-none focus:ring-4 focus:ring-sky/60"
-          />
+          {fine && (
+            <div id="fine-panel" className="glass rounded-[1.25rem] mt-2 p-2 flex flex-col gap-1 enter-up">
+              {([
+                { label: "התחלה", v: start, nudgeFn: nudgeStart, here: startHere },
+                { label: "סיום", v: end, nudgeFn: nudgeEnd, here: endHere },
+              ] as const).map((row) => (
+                <div key={row.label} className="flex items-center gap-1.5">
+                  <div className="flex-1 min-w-0 ps-2">
+                    <div className="text-[0.82rem] font-semibold text-ink-2">{row.label}</div>
+                    <div className="font-bold tabular ltr text-start">{fmtTime(row.v)}</div>
+                  </div>
+                  <div className="flex gap-1.5" dir="ltr">
+                    <Button size="sm" variant="glass" className="tabular" onClick={() => row.nudgeFn(-0.1)} aria-label={`${row.label}: 0.1 שנייה אחורה`}>−0.1</Button>
+                    <Button size="sm" variant="glass" className="tabular" onClick={() => row.nudgeFn(0.1)} aria-label={`${row.label}: 0.1 שנייה קדימה`}>+0.1</Button>
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-sky-ink" onClick={row.here} aria-label={`קבע ${row.label} במיקום הנגן`}>
+                    לפי הנגן
+                  </Button>
+                </div>
+              ))}
+              <div className="border-t border-hairline mt-1 px-2">
+                <Switch checked={loop} onChange={setLoop} label="השמעה בלופ" description="ההשמעה חוזרת על הקטע שוב ושוב" />
+              </div>
+            </div>
+          )}
         </section>
       </div>
 
-      {/* Bottom action bar */}
+      {/* Bottom action bar: listen + create */}
       <div className="fixed inset-x-0 bottom-0 z-30 px-3 pt-3 safe-bottom glass !border-x-0 !border-b-0 rounded-t-[1.75rem]">
-        <div className="max-w-[40rem] mx-auto flex items-center gap-3">
-          <div className="flex-none text-center leading-tight min-w-[4.5rem]" aria-live="polite">
-            <div className="text-[0.75rem] text-ink-3 font-semibold">משך</div>
-            <div className="text-[1.05rem] font-extrabold tabular">{fmtSeconds(len)} <span className="text-[0.8rem] font-bold">שניות</span></div>
-          </div>
+        <div className="max-w-[40rem] mx-auto flex items-center gap-2.5">
+          <Button
+            variant="sky"
+            size="lg"
+            className="flex-none !px-4"
+            onClick={preview}
+            aria-pressed={previewing}
+            aria-label={previewing ? "עצור השמעה" : "השמע את הקטע שנבחר"}
+          >
+            {previewing ? <IconPause size={22} /> : <IconPlay size={22} />}
+            <span>{previewing ? "עצור" : "השמע"}</span>
+          </Button>
           <Button variant="accent" size="lg" className="flex-1" onClick={() => { media.current?.pause(); p.onCreate(); }} aria-label={`צור צלצול באורך ${fmtSeconds(len)} שניות`}>
-            <span aria-hidden="true">🎵</span> צור צלצול
+            צור צלצול
           </Button>
         </div>
       </div>

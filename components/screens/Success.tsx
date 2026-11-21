@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { IconCheck, IconDownload, IconInfo, IconMusic, IconPause, IconPlay, IconPlus, IconShare } from "../Icons";
+import { IconCheck, IconDownload, IconPause, IconPlay, IconPlus, IconShare } from "../Icons";
 import { Button, TopBar } from "../ui";
 import { MESSAGES } from "@/lib/errors";
-import { fmtBytes, fmtSeconds, fmtTime } from "@/lib/format";
+import { fmtTime } from "@/lib/format";
 
 export type Result = {
   blob: Blob;
@@ -131,89 +131,72 @@ export default function Success({ result, isIPhone, onBack, onNew, onSettings, o
           </h1>
         </div>
 
-        <section className="glass rounded-[1.75rem] p-4 mt-5" aria-label="פרטי הצלצול">
-          <div className="flex items-center gap-3">
-            <div className="grid place-items-center h-12 w-12 flex-none rounded-2xl bg-orange-soft"><IconMusic size={24} /></div>
-            <div className="min-w-0">
-              <div className="font-bold text-[1.1rem] truncate" dir="auto">{result.name}</div>
-              <div className="text-[0.9rem] text-ink-2">
-                משך: <span className="tabular">{fmtSeconds(result.duration)}</span> שניות · פורמט: <span className="ltr">{result.ext.toUpperCase()}</span> · <span className="tabular ltr">{fmtBytes(result.blob.size)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-3"><MiniPlayer url={result.url} name={result.name} duration={result.duration} /></div>
+        <section className="glass rounded-[1.75rem] p-3 mt-5" aria-label="הצלצול">
+          <div className="font-bold text-[1.1rem] truncate px-1.5 mb-2" dir="auto">{result.name}</div>
+          <MiniPlayer url={result.url} name={result.name} duration={result.duration} />
         </section>
 
         <div className="flex flex-col gap-2.5 mt-5">
           {isIPhone ? (
             <>
-              <Button variant="accent" size="lg" full onClick={share} aria-label="שתף והשתמש כצלצול - פותח את גיליון השיתוף">
-                <IconShare size={22} /> שתף והשתמש כצלצול
+              <Button variant="accent" size="lg" full onClick={share} aria-label="השתמש כצלצול - פותח את גיליון השיתוף">
+                <IconShare size={22} /> השתמש כצלצול
               </Button>
-              <Button variant="glass" size="lg" full onClick={save}>
-                <IconDownload size={20} /> שמור לקבצים
-              </Button>
+              <p className="text-center text-[0.92rem] text-ink-2 px-2">בחלון שנפתח בחר ״השתמש כצלצול״.</p>
             </>
           ) : (
-            <>
-              <Button variant="accent" size="lg" full onClick={save}>
-                <IconDownload size={22} /> הורד את הצלצול
-              </Button>
-              {canShare && (
-                <Button variant="glass" size="lg" full onClick={share}>
-                  <IconShare size={20} /> שתף
-                </Button>
-              )}
-            </>
+            <Button variant="accent" size="lg" full onClick={save}>
+              <IconDownload size={22} /> הורד את הצלצול
+            </Button>
           )}
           {shareError && (
             <p role="alert" className="rounded-[1rem] bg-orange-soft p-3 text-[0.92rem] leading-relaxed">{shareError}</p>
           )}
         </div>
 
-        {isIPhone && (
-          <section className="glass rounded-[1.75rem] p-4 mt-5" aria-labelledby="howto">
-            <h2 id="howto" className="font-bold flex items-center gap-2"><IconInfo size={18} /> באייפון עם iOS 26 ומעלה:</h2>
-            <ol className="mt-2 flex flex-col gap-1.5 list-decimal ps-6 text-ink-2 leading-relaxed">
-              <li>לחץ על ״שתף והשתמש כצלצול״.</li>
-              <li>בגיליון השיתוף חפש ״השתמש כצלצול״.</li>
-              <li>אם הוא לא מופיע מיד, לחץ על ״עוד״.</li>
+        {isIPhone && (shareError || !canShare) && (
+          <section className="rounded-[1.25rem] bg-sky-soft p-3.5 mt-4 enter-up" aria-labelledby="fallback">
+            <h2 id="fallback" className="font-bold">דרך חלופית</h2>
+            <ol className="mt-1.5 flex flex-col gap-1 list-decimal ps-6 text-[0.95rem] leading-relaxed">
+              <li>לחץ ״שמור לקבצים״ למטה.</li>
+              <li>באפליקציית ״קבצים״ לחץ לחיצה ארוכה על הצלצול.</li>
+              <li>בחר ״שתף״ ואז ״השתמש כצלצול״.</li>
             </ol>
-            {(saved || shareError || !canShare) ? (
-              <div className="mt-4 rounded-[1.25rem] bg-sky-soft p-3.5 enter-up">
-                <h3 className="font-bold">לא מופיע ״השתמש כצלצול״?</h3>
-                <ol className="mt-1.5 flex flex-col gap-1 list-decimal ps-6 text-[0.95rem] leading-relaxed">
-                  <li>שמור את הקובץ ב״קבצים״.</li>
-                  <li>פתח את אפליקציית ״קבצים״.</li>
-                  <li>לחץ לחיצה ארוכה על הצלצול.</li>
-                  <li>בחר ״שתף״.</li>
-                  <li>בחר ״השתמש כצלצול״.</li>
-                </ol>
-              </div>
-            ) : (
-              <button type="button" onClick={onHelp} className="pressable mt-2 min-h-11 font-semibold text-sky-ink">
-                לא מופיע ״השתמש כצלצול״?
-              </button>
-            )}
           </section>
         )}
 
-        <div className="flex flex-col gap-2 mt-5">
-          {result.ext === "m4a" && (
-            mp3.state === "ready" && mp3.url ? (
-              <Button variant="ghost" full onClick={() => downloadUrl(mp3.url!, `${result.name}.mp3`)}>
-                <IconDownload size={18} /> שמור גם כ־MP3
-              </Button>
-            ) : (
-              <Button variant="ghost" full onClick={onMakeMp3} disabled={mp3.state === "working"} aria-busy={mp3.state === "working"}>
-                {mp3.state === "working" ? <span className="h-4 w-4 rounded-full border-2 border-ink border-t-transparent spin" aria-hidden="true" /> : <IconMusic size={18} />}
-                {mp3.state === "working" ? "יוצר MP3…" : mp3.state === "error" ? "יצירת MP3 נכשלה - נסה שוב" : "צור גם קובץ MP3 (גיבוי)"}
-              </Button>
-            )
-          )}
-          <Button variant="ghost" full onClick={onNew}>
+        {/* Secondary actions - quiet */}
+        <div className="grid grid-cols-2 gap-2 mt-6">
+          {isIPhone ? (
+            <Button variant="glass" onClick={save}>
+              {saved ? <IconCheck size={18} /> : <IconDownload size={18} />} {saved ? "נשמר" : "שמור לקבצים"}
+            </Button>
+          ) : canShare ? (
+            <Button variant="glass" onClick={share}><IconShare size={18} /> שתף</Button>
+          ) : null}
+          <Button variant="glass" onClick={onNew} className={!isIPhone && !canShare ? "col-span-2" : ""}>
             <IconPlus size={18} /> צלצול חדש
           </Button>
+        </div>
+
+        <div className="flex flex-col items-center gap-1 mt-3">
+          {isIPhone && canShare && !shareError && (
+            <button type="button" onClick={onHelp} className="pressable min-h-11 px-3 font-semibold text-sky-ink">
+              לא מופיע ״השתמש כצלצול״?
+            </button>
+          )}
+          {result.ext === "m4a" && (
+            mp3.state === "ready" && mp3.url ? (
+              <button type="button" onClick={() => downloadUrl(mp3.url!, `${result.name}.mp3`)} className="pressable min-h-11 px-3 font-semibold text-ink-2 flex items-center gap-1.5">
+                <IconDownload size={16} /> הורד MP3
+              </button>
+            ) : (
+              <button type="button" onClick={onMakeMp3} disabled={mp3.state === "working"} aria-busy={mp3.state === "working"} className="pressable min-h-11 px-3 font-semibold text-ink-2 flex items-center gap-1.5 disabled:opacity-60">
+                {mp3.state === "working" && <span className="h-4 w-4 rounded-full border-2 border-ink border-t-transparent spin" aria-hidden="true" />}
+                {mp3.state === "working" ? "יוצר MP3…" : mp3.state === "error" ? "יצירת MP3 נכשלה - נסה שוב" : "צריך גם MP3?"}
+              </button>
+            )
+          )}
         </div>
       </div>
     </div>
